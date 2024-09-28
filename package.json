@@ -1,0 +1,35 @@
+{
+  "name": "sap-telegram-bot",
+  "version": "1.0.0",
+  "description": "For (Madad savdo)",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon build/index.js",
+    "watch": "nodemon -e ts -w src --exec ts-node src/bot.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farruhzoirov/sap-telegram-bot.git"
+  },
+  "author": "Farruh Zoirov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/farruhzoirov/sap-telegram-bot/issues"
+  },
+  "homepage": "https://github.com/farruhzoirov/sap-telegram-bot#readme",
+  "dependencies": {
+    "@grammyjs/conversations": "^1.2.0",
+    "@types/node": "^22.5.5",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "grammy": "^1.30.0",
+    "ioredis": "^5.4.1",
+    "mongoose": "^8.6.3",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "typescript": "^5.6.2"
+  }
+}
