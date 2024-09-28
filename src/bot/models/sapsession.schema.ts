@@ -5,6 +5,7 @@ interface ISapSession extends Document {
   sessionExpiry: number;
 }
 
+
 const SapSessionSchema: Schema = new Schema({
   sessionId: { type: String, required: true },
   sessionExpiry: { type: Number, required: true },
