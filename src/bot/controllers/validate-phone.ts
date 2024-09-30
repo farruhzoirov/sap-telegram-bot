@@ -1,6 +1,6 @@
 import {Conversation} from "@grammyjs/conversations";
 import {MyContext} from "../common/types/session-context";
-import {Language} from "../common/enums/language";
+import {LanguageEnum} from "../common/enums/language.enum";
 import {translates} from "../translates/translate";
 
 

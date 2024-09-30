@@ -1,5 +1,6 @@
-export enum ConversationSteps {
+export enum ConversationStepsEnum {
     START = 'START',
+    SETTINGS = 'SETTINGS',
     LANGUAGE_SELECTION = 'LANGUAGE_SELECTION',
     ASKING_PHONE = 'ASKING_PHONE',
     VALIDATION_PHONE = 'VALIDATION_PHONE',

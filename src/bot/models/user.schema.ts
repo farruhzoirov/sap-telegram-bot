@@ -24,6 +24,9 @@ const UserSchema: Schema = new Schema({
   role: {
     type: String, enum: ['user', 'admin'], default: 'user',
     required: true,
+  },
+  telegramId: {
+    type: Number,
   }
 }, {
   timestamps: true,

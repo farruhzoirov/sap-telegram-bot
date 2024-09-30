@@ -6,8 +6,9 @@ export const LOGIN_DATA = {
   "Password": "6WPXfYW@"
 };
 
-
 export const SAP_API_ENDPOINTS = {
   EMPLOYEES_GET: "EmployeesInfo?$select=EmployeeID,JobTitle,FirstName,MobilePhone",
-  PENDING_ORDERS_GET: "Orders?$select=DocumentLines&$filter= Status  Cancelled eq 'tNO' and DocumentStatus eq 'bost_Open"
-}
+  PENDING_ORDERS_GET: "Quotations?$select=DocumentLines&$filter= CardName, Status Cancelled eq 'tNO' and DocumentStatus eq 'bost_Open'",
+  CONFIRMED_ORDERS_GET: "Orders?$select=DocumentLines&$filter= CardCode,Status  Cancelled eq 'tNO' and DocumentStatus eq 'bost_Open'",
+  IN_TRANSIT_ORDERS_GET: "DeliveryNotes?$select=DocumentLines&$filter= CardCode, Status Cancelled eq 'tNO' and DocumentStatus eq 'bost_Open'"
+};
