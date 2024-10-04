@@ -1,6 +1,6 @@
 import {User} from '../models/user.schema';
 import {loginToSAPAndStoreSession} from './sapSession.service';
-import {SAP_API_ENDPOINTS, SAP_API_URL} from '../config/sapConfig';
+import {SAP_API_ENDPOINTS} from '../config/sapConfig';
 import {apiResponseHelper} from "../helpers/api-response.helper";
 import {Methods} from "../common/enums/methods.enum";
 
@@ -11,23 +11,26 @@ export async function verifyPhoneNumberService(userPhone: string, telegramId?: n
         const response = await apiResponseHelper(Methods.GET, sapApiEndPoint, '');
         const employees = response!.data!.value || [];
         const findUser = employees.find((item: { MobilePhone: string }) => item?.MobilePhone === userPhone);
-
         if (!findUser) {
             return null;
         }
-
         const userRole = (findUser.MobilePhone === process.env.ADMIN_PHONE_NUMBER) ? 'admin' : 'user';
         user = await User.findOneAndUpdate(
-            { userId: findUser.EmployeeID },
+            {
+                userId: findUser.EmployeeID
+            },
             {
                 $set: {
                     role: userRole,
                     username: findUser.FirstName,
                     phone: findUser.MobilePhone,
-                    telegramId: telegramId // Set Telegram ID if provided
+                    telegramId: telegramId
                 }
             },
-            { upsert: true, new: true }
+            {
+                upsert: true,
+                new: true
+            }
         );
         return user;
     } catch (error: any) {

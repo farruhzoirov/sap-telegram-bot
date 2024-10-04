@@ -3,6 +3,12 @@ import {apiResponseHelper} from "../helpers/api-response.helper";
 import {Methods} from "../common/enums/methods.enum";
 
 
+export async function getItemsForOrder() {
+    const sapApiEndpoint = SAP_API_ENDPOINTS.ORDERS_ITEMS_GET;
+    const response = await apiResponseHelper(Methods.GET, sapApiEndpoint, '');
+    return response?.data;
+}
+
 export async function getPendingOrders() {
     const sapApiEndpoint = SAP_API_ENDPOINTS.PENDING_ORDERS_GET;
     const response = await apiResponseHelper(Methods.GET, sapApiEndpoint, '');
@@ -19,6 +25,13 @@ export async function getConfirmedOrders() {
 
 export async function getInWayOrders() {
     const sapApiEndpoint = SAP_API_ENDPOINTS.IN_TRANSIT_ORDERS_GET;
+    const response = await apiResponseHelper(Methods.GET, sapApiEndpoint, '');
+    return response?.data;
+}
+
+
+export async function getCompletedOrders() {
+    const sapApiEndpoint = SAP_API_ENDPOINTS.COMPLETED_ORDERS_GET;
     const response = await apiResponseHelper(Methods.GET, sapApiEndpoint, '');
     return response?.data;
 }

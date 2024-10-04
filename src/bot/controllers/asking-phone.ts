@@ -20,12 +20,9 @@ export async function askingPhone(conversation: Conversation<MyContext>, ctx: My
         throw new Error('Phone number not provided');
     }
 
-    // Telefon raqamni '+' belgisini tekshirish va standartlashtirish
     if (!phoneNumber.startsWith('+')) {
         phoneNumber = `+${phoneNumber}`;
     }
-
-    console.log(phoneNumber);
 
     return phoneNumber;
 }

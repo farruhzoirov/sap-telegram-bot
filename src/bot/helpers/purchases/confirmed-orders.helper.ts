@@ -2,6 +2,17 @@ import {MyContext} from "../../common/types/session-context";
 import {Conversation} from "@grammyjs/conversations";
 import {getConfirmedOrders} from "../../services/orders.service";
 import {InlineKeyboard} from "grammy";
+import {purchaseMenu} from "../../controllers/purchases-menu";
+import {User} from "../../models/user.schema";
+import {ConversationStepsEnum} from "../../common/enums/conversation-steps.enum";
+import {LanguageEnum} from "../../common/enums/language.enum";
+import {Purchases_ru, Purchases_uz} from "../../common/enums/purchases.enum";
+import {handleCreatingPurchase} from "./creating-order.helper";
+import {handlePendingOrders} from "./pending-orders.helper";
+import {handleInTransitOrders} from "./intransit-order.helper";
+import {handleCompletedOrders} from "./completed-order.helper";
+import {Back} from "../../common/enums/inline-menu-enums";
+import {handleMainMenu} from "../../controllers/main-menu";
 
 const ITEMS_PER_PAGE = 1;
 
@@ -11,103 +22,151 @@ interface DocumentLine {
     UnitPrice: number;
     Currency: string;
 }
+
 interface Order {
     DocumentLines: DocumentLine[];
 }
+
 interface PendingOrdersResponse {
     value: Order[];
 }
 
-let currentPage = 1;
+export async function handleConfirmedOrders(conversation: Conversation<MyContext>, ctx: MyContext) {
+    await ctx.reply(ctx.session.language === 'uz' ? 'Kuting, ma\'lumotlar yuklanmoqda...' : 'Пожалуйста, подождите, данные загружаются...');
 
-export async function handleConfirmedOrders(conversation: Conversation<MyContext> ,ctx: MyContext, language: string) {
-    const confirmedOrders : PendingOrdersResponse = await getConfirmedOrders();
-    let itemIndex = 1// Mock data
-
-    if (confirmedOrders && confirmedOrders.value.length) {
-        const totalPages = Math.ceil(confirmedOrders.value.length / ITEMS_PER_PAGE);
-        const showPage = (page: number): { message: string; keyboard: InlineKeyboard } => {
-            const start = (page - 1) * ITEMS_PER_PAGE;
-            const end = start + ITEMS_PER_PAGE;
-            const pageOrders = confirmedOrders.value.slice(start, end);
-
-            const items = pageOrders.map((order) => {
-                return order.DocumentLines.map((line, index) => {
-                    const quantity = line.Quantity;
-                    const price = line.UnitPrice || 0;
-                    const currency = line.Currency || '';
-                    const result = `${index + 1}) ${line.ItemCode} (Qty: ${quantity}, Price: ${price}${currency}) \n`;
-                    // itemIndex++;
-                    return result;
-                }).join('\n');
-            }).join('\n');
-
-            const message = language === 'uz'
-                ? `<b>Tasdiqlangan buyurtmalar (Sahifa ${page}/${totalPages})</b>\n${items}`
-                : `<b>Подтвержденные заказы (Страница ${page}/${totalPages})</b>\n${items}`;
-
-            const keyboard = new InlineKeyboard();
-            if (page > 1) keyboard.add({text: '⬅️ Prev', callback_data: `prev_${page}`});
-            if (page < totalPages) keyboard.add({text: 'Next ➡️', callback_data: `next_${page}`});
-
-            return {message, keyboard};
-        };
-
-        const sendOrEditMessage = async (page: number, messageId?: number) => {
-            const {message, keyboard} = showPage(page);
-            try {
-                if (messageId) {
-                    await ctx.api.editMessageText(ctx.chat!.id, messageId, message, {
-                        parse_mode: "HTML",
-                        reply_markup: keyboard
-                    });
-                } else {
-                    await ctx.reply(message, {parse_mode: "HTML", reply_markup: keyboard});
-                }
-            } catch (error) {
-                console.error('Error sending/editing message:', error);
-                await ctx.reply(message, {parse_mode: "HTML", reply_markup: keyboard});
-            }
-        };
-        await sendOrEditMessage(currentPage);
-        while (true) {
-            const response = await conversation.waitFor(['callback_query:data', 'message']);
-
-            if (response.callbackQuery?.data) {
-                const data = response.callbackQuery.data;
-
-                if (data === 'back') {
-                    await ctx.answerCallbackQuery();
-                    break;
-                }
-                const match = data?.match(/^(prev|next)_(\d+)$/);
-
-                if (match) {
-                    const [_, action, pageStr] = match;
-                    let page = parseInt(pageStr, 10);
-
-                    if (action === 'prev' && page > 1) page--;
-                    if (action === 'next' && page < totalPages) page++;
-                    currentPage = page;
-
-                    const messageId = response.callbackQuery.message?.message_id;
-                    if (messageId) {
-                        await sendOrEditMessage(currentPage, messageId);
-                    } else {
-                        await sendOrEditMessage(currentPage);
-                    }
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-    } else {
+    const confirmedOrders: PendingOrdersResponse = await getConfirmedOrders();
+    let user = await User.findOne({telegramId: ctx!.from!.id});
+    if (!confirmedOrders || !confirmedOrders.value.length) {
         await ctx.reply(
-            language === 'uz'
+            ctx.session.language === 'uz'
                 ? "Sizda tasdiqlangan buyurtmalar yo'q."
                 : "У вас нет подтвержденных заказов."
         );
+        ctx.session.currentStep = ConversationStepsEnum.PURCHASES;
+        await purchaseMenu(conversation, ctx, user!.role);
+        return;
+    }
+    let currentPage = 1;
+    const totalPages = Math.ceil(confirmedOrders.value.length / ITEMS_PER_PAGE);
+
+    const showPage = (page: number): { message: string; keyboard: InlineKeyboard } => {
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageOrders = confirmedOrders.value.slice(start, end);
+
+        const items = pageOrders.map((order) => {
+            return order.DocumentLines.map((line, index) => {
+                const quantity = line.Quantity;
+                const price = line.UnitPrice || 0;
+                const currency = line.Currency || '';
+                return `${index + 1}) ${line.ItemCode} (Qty: ${quantity}, Price: ${price}${currency}) \n`;
+            }).join('\n');
+        }).join('\n');
+
+
+        const message = ctx.session.language === 'uz'
+            ? `<b>Tasdiqlangan buyurtmalar (Sahifa ${page}/${totalPages})</b>\n${items}`
+            : `<b>Подтвержденные заказы (Страница ${page}/${totalPages})</b>\n${items}`;
+
+        const keyboard = new InlineKeyboard();
+        if (page > 1) keyboard.add({text: '⬅️ Prev', callback_data: `prev_${page}`});
+        if (page < totalPages) keyboard.add({text: 'Next ➡️', callback_data: `next_${page}`});
+        return {message, keyboard};
+    };
+
+
+    const sendOrEditMessage = async (page: number, messageId?: number) => {
+        const {message, keyboard} = showPage(page);
+        try {
+            if (messageId) {
+                await ctx.api.editMessageText(ctx.chat!.id, messageId, message, {
+                    parse_mode: "HTML",
+                    reply_markup: keyboard
+                });
+            } else {
+                await ctx.reply(message, {parse_mode: "HTML", reply_markup: keyboard});
+            }
+        } catch (error) {
+            console.error('Error sending/editing message:', error);
+            await ctx.reply(message, {parse_mode: "HTML", reply_markup: keyboard});
+        }
+    };
+
+    await sendOrEditMessage(currentPage);
+
+    while (true) {
+        const response = await conversation.waitFor(['callback_query:data', 'message:text']);
+        if (response.callbackQuery?.data) {
+            const data = response.callbackQuery.data;
+            if (data.startsWith('prev_') && currentPage > 1) {
+                currentPage--;
+                await sendOrEditMessage(currentPage, response.callbackQuery.message!.message_id);
+            } else if (data.startsWith('next_') && currentPage < totalPages) {
+                currentPage++;
+                await sendOrEditMessage(currentPage, response.callbackQuery.message!.message_id);
+            }
+        } else if (response.message?.text) {
+           const selectedOption = response.message?.text;
+
+            if (ctx.session.language === LanguageEnum.uz) {
+                switch (selectedOption) {
+                    case Purchases_uz.CREATING_PURCHASE:
+                        ctx.session.currentStep = ConversationStepsEnum.CREATING_ORDERS;
+                        await handleCreatingPurchase(conversation, ctx);
+                        break;
+                    case Purchases_uz.CONFIRMED_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.CONFIRMED_ORDERS;
+                        await handleConfirmedOrders(conversation, ctx);
+                        break;
+                    case Purchases_uz.PENDING_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.PENDING_ORDERS;
+                        await handlePendingOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Purchases_uz.IN_WAY_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.IN_TRANSIT_ORDERS
+                        await handleInTransitOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Purchases_uz.COMPLETED_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.COMPLETED_ORDERS
+                        await handleCompletedOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Back.BACK_UZ:
+                        ctx.session.currentStep = ConversationStepsEnum.MAIN_MENU
+                        await handleMainMenu(conversation, ctx);
+                }
+            } else if (ctx.session.language === LanguageEnum.ru) {
+                switch (selectedOption) {
+                    case Purchases_ru.CREATING_PURCHASE:
+                        ctx.session.currentStep = ConversationStepsEnum.CREATING_ORDERS;
+                        await handleCreatingPurchase(conversation, ctx);
+                        break;
+                    case Purchases_ru.CONFIRMED_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.CONFIRMED_ORDERS
+                        await handleConfirmedOrders(conversation, ctx);
+                        break;
+                    case Purchases_ru.PENDING_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.PENDING_ORDERS
+                        await handlePendingOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Purchases_ru.IN_WAY_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.IN_TRANSIT_ORDERS
+                        await handleInTransitOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Purchases_ru.COMPLETED_ORDERS:
+                        ctx.session.currentStep = ConversationStepsEnum.COMPLETED_ORDERS
+                        await handleCompletedOrders(conversation, ctx);
+                        await purchaseMenu(conversation, ctx, user!.role);
+                        break;
+                    case Back.BACK_RU:
+                        ctx.session.currentStep = ConversationStepsEnum.MAIN_MENU
+                        await handleMainMenu(conversation, ctx);
+                }
+            }
+        }
     }
 }

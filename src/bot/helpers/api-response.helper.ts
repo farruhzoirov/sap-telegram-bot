@@ -53,5 +53,4 @@ export async function apiResponseHelper(method: string, endpoint: string, data: 
     } catch (err) {
         console.log('Api response', err)
     }
-
 }

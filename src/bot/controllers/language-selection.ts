@@ -1,15 +1,24 @@
 import {Conversation} from "@grammyjs/conversations";
 import {MyContext} from "../common/types/session-context";
 import {InlineKeyboard} from "grammy";
-import {translates} from "../translates/translate";
+import {ConversationStepsEnum} from "../common/enums/conversation-steps.enum";
+import {handlePhoneVerification} from "./phone-verification";
+import {User} from "../models/user.schema";
+import {handleMainMenu} from "./main-menu";
 
-export async function handleLanguageSelection(conversation: Conversation<MyContext>, ctx: MyContext): Promise<string> {
+export async function handleStart(conversation: Conversation<MyContext>, ctx: MyContext): Promise<void> {
+    const user = await User.findOne({ telegramId: ctx!.from!.id });
+    if (user) {
+        ctx.session.currentStep = ConversationStepsEnum.MAIN_MENU;
+        await handleMainMenu(conversation, ctx);
+        return;
+    }
     const keyboard = new InlineKeyboard()
-        .text('🇺🇿 Oʻzbekcha', 'uzbek')
-        .text('🇷🇺 Русский', 'russian');
-    await ctx.reply('Tilni tanlang | Выберите язык:', {reply_markup: keyboard});
+        .text("🇺🇿 Oʻzbekcha", "uzbek")
+        .text("🇷🇺 Русский", "russian");
+    await ctx.reply("Tilni tanlang | Выберите язык:", {reply_markup: keyboard});
 
-    const languageChoice = await conversation.waitFor('callback_query:data');
+    const languageChoice = await conversation.waitFor("callback_query:data");
     const chosenLang = languageChoice.callbackQuery?.data;
 
     const chatId = ctx.chat?.id;
@@ -18,19 +27,18 @@ export async function handleLanguageSelection(conversation: Conversation<MyConte
         try {
             await ctx.api.deleteMessage(chatId, messageId);
         } catch (error) {
-            console.error('Failed to delete message:', error);
+            console.error("Failed to delete message:", error);
+        }
+        if (chosenLang === "uzbek") {
+            ctx.session.language = "uz";
+        } else if (chosenLang === "russian") {
+            ctx.session.language = "ru";
+        }
+
+        if (ctx.callbackQuery?.id) {
+            await ctx.answerCallbackQuery();
         }
     }
-
-    if (chosenLang === 'uzbek') {
-        ctx.session.language = 'uz';
-    } else if (chosenLang === 'russian') {
-        ctx.session.language = 'ru';
-    }
-
-    if (ctx.callbackQuery?.id) {
-        await ctx.answerCallbackQuery();
-    }
-    return ctx.session.language || 'uz';
+    ctx.session.currentStep = ConversationStepsEnum.PHONE_VERIFICATION;
+    await handlePhoneVerification(conversation, ctx);
 }
-

@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon build/index.js",
+    "start": "nodemon build/bot.js",
     "watch": "nodemon -e ts -w src --exec ts-node src/bot.ts"
   },
   "repository": {
@@ -20,6 +20,8 @@
   "homepage": "https://github.com/farruhzoirov/sap-telegram-bot#readme",
   "dependencies": {
     "@grammyjs/conversations": "^1.2.0",
+    "@grammyjs/menu": "^1.2.2",
+    "@grammyjs/runner": "^2.0.3",
     "@types/node": "^22.5.5",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",

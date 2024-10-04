@@ -1,11 +1,13 @@
 import {CallbackQueryContext, Context, SessionFlavor} from 'grammy';
 import { ConversationFlavor } from '@grammyjs/conversations';
-import { ConversationStepsEnum } from "../enums/conversation-steps.enum";
+import {ConversationStepsEnum} from "../enums/conversation-steps.enum";
+import {Order} from "../interfaces/order";
 
 // Define the structure for session data
 interface SessionData {
   language: string;
   currentStep: ConversationStepsEnum;
+  order: Order[]
 }
 
 
