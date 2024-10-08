@@ -1,12 +1,20 @@
 import {Conversation} from '@grammyjs/conversations';
-import {translates} from '../translates/translate';
-import {verifyPhoneNumberService} from '../services/verify-phone-number.service';
-import {MyContext} from '../common/types/session-context';
 import {Keyboard} from "grammy";
+
+// Translates
+import {translates} from '../translates/translate';
+
+// Services
+import {verifyPhoneNumberService} from '../services/verify-phone-number.service';
+// Main context
+import {MyContext} from '../common/types/session-context';
+
+// Enums
 import {LanguageEnum} from "../common/enums/language.enum";
 import {ConversationStepsEnum} from "../common/enums/conversation-steps.enum";
+
+// Main menu
 import {handleMainMenu} from "./main-menu";
-import {User} from "../models/user.schema";
 
 
 export async function handlePhoneVerification(conversation: Conversation<MyContext>, ctx: MyContext,): Promise<any> {

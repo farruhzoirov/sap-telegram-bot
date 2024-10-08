@@ -1,20 +1,29 @@
-import {MyContext} from "../../common/types/session-context";
 import {Conversation} from "@grammyjs/conversations";
-import {getConfirmedOrders} from "../../services/orders.service";
 import {InlineKeyboard} from "grammy";
+// Services
+import {getConfirmedOrders} from "../../services/orders.service";
+
+// Menus
 import {purchaseMenu} from "../../controllers/purchases-menu";
+import {handleMainMenu} from "../../controllers/main-menu";
+
+// User model for mongodb
 import {User} from "../../models/user.schema";
+
 import {ConversationStepsEnum} from "../../common/enums/conversation-steps.enum";
 import {LanguageEnum} from "../../common/enums/language.enum";
 import {Purchases_ru, Purchases_uz} from "../../common/enums/purchases.enum";
+import {Back} from "../../common/enums/inline-menu-enums";
+
+// Helpers
 import {handleCreatingPurchase} from "./creating-order.helper";
 import {handlePendingOrders} from "./pending-orders.helper";
 import {handleInTransitOrders} from "./intransit-order.helper";
 import {handleCompletedOrders} from "./completed-order.helper";
-import {Back} from "../../common/enums/inline-menu-enums";
-import {handleMainMenu} from "../../controllers/main-menu";
 
-const ITEMS_PER_PAGE = 1;
+// Types
+import {MyContext} from "../../common/types/session-context";
+const ITEMS_PER_PAGE = 10;
 
 interface DocumentLine {
     ItemCode: string;
@@ -22,21 +31,18 @@ interface DocumentLine {
     UnitPrice: number;
     Currency: string;
 }
-
 interface Order {
     DocumentLines: DocumentLine[];
 }
-
 interface PendingOrdersResponse {
     value: Order[];
 }
-
 export async function handleConfirmedOrders(conversation: Conversation<MyContext>, ctx: MyContext) {
     await ctx.reply(ctx.session.language === 'uz' ? 'Kuting, ma\'lumotlar yuklanmoqda...' : 'Пожалуйста, подождите, данные загружаются...');
 
     const confirmedOrders: PendingOrdersResponse = await getConfirmedOrders();
     let user = await User.findOne({telegramId: ctx!.from!.id});
-    if (!confirmedOrders || !confirmedOrders.value.length) {
+    if (!confirmedOrders.value.length) {
         await ctx.reply(
             ctx.session.language === 'uz'
                 ? "Sizda tasdiqlangan buyurtmalar yo'q."

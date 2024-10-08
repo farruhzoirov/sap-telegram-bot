@@ -1,9 +1,15 @@
 import {Conversation} from "@grammyjs/conversations";
 import {MyContext} from "../common/types/session-context";
 import {InlineKeyboard} from "grammy";
+
+// Conversation enum
 import {ConversationStepsEnum} from "../common/enums/conversation-steps.enum";
 import {handlePhoneVerification} from "./phone-verification";
+
+// User schema for mongodb
 import {User} from "../models/user.schema";
+
+// Handle Menu
 import {handleMainMenu} from "./main-menu";
 
 export async function handleStart(conversation: Conversation<MyContext>, ctx: MyContext): Promise<void> {
@@ -39,6 +45,7 @@ export async function handleStart(conversation: Conversation<MyContext>, ctx: My
             await ctx.answerCallbackQuery();
         }
     }
+
     ctx.session.currentStep = ConversationStepsEnum.PHONE_VERIFICATION;
     await handlePhoneVerification(conversation, ctx);
 }

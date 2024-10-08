@@ -1,7 +1,18 @@
+
+
+// User model for mongodb
 import {User} from '../models/user.schema';
+
+// Login to sap service
 import {loginToSAPAndStoreSession} from './sapSession.service';
+
+// Sap config based
 import {SAP_API_ENDPOINTS} from '../config/sapConfig';
+
+// Helpers
 import {apiResponseHelper} from "../helpers/api-response.helper";
+
+// Enums
 import {Methods} from "../common/enums/methods.enum";
 
 export async function verifyPhoneNumberService(userPhone: string, telegramId?: number) {

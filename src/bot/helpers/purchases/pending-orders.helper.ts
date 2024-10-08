@@ -16,7 +16,7 @@ import {handleCompletedOrders} from "./completed-order.helper";
 import {Back} from "../../common/enums/inline-menu-enums";
 import {handleMainMenu} from "../../controllers/main-menu";
 
-const ITEMS_PER_PAGE = 1;
+const ITEMS_PER_PAGE = 10;
 
 interface DocumentLine {
     ItemCode: string;

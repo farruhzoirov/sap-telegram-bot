@@ -1,26 +1,35 @@
 import {Conversation} from '@grammyjs/conversations';
-import {MyContext} from '../../common/types/session-context';
-import {getCompletedOrders} from '../../services/orders.service'; // SAP API bilan bog'langan funktsiya
 import {InlineKeyboard} from 'grammy';
+
+// Types
+import {MyContext} from '../../common/types/session-context';
+import {getCompletedOrders} from '../../services/orders.service';
+
+// Enums
 import {LanguageEnum} from "../../common/enums/language.enum";
 import {Purchases_ru, Purchases_uz} from "../../common/enums/purchases.enum";
 import {ConversationStepsEnum} from "../../common/enums/conversation-steps.enum";
+import {Back} from "../../common/enums/inline-menu-enums";
+
+// Helpers
 import {handleCreatingPurchase} from "./creating-order.helper";
 import {handlePendingOrders} from "./pending-orders.helper";
-import {purchaseMenu} from "../../controllers/purchases-menu";
 import {handleInTransitOrders} from "./intransit-order.helper";
-import {Back} from "../../common/enums/inline-menu-enums";
-import {handleMainMenu} from "../../controllers/main-menu";
 import {handleConfirmedOrders} from "./confirmed-orders.helper";
+
+// User schema for mongodb
 import {User} from "../../models/user.schema";
+
+//  Menus
+import {purchaseMenu} from "../../controllers/purchases-menu";
+import {handleMainMenu} from "../../controllers/main-menu";
 
 
 function paginate(orders: any, page = 1, perPage = 10) {
-    const start = (page - 1) * perPage;  // Sahifa boshlanish indeksini hisoblash
-    const end = start + perPage;         // Sahifa tugash indeksini hisoblash
-    return orders.slice(start, end);     // Belgilangan bo'limdagi buyurtmalarni ajratib olish
+    const start = (page - 1) * perPage;
+    const end = start + perPage;
+    return orders.slice(start, end);
 }
-
 
 function filterOrdersByDate(orders: any, startDate: Date, endDate: Date) {
     console.log("FilterOrders", startDate, endDate);
@@ -112,16 +121,11 @@ export async function handleCompletedOrders(conversation: Conversation<MyContext
             );
             return;
         }
-
-        // Reset the pagination and send the first page of results
         page = 1;
         messageId = await sendOrders(filteredOrders, page);
     };
-
-    // First run: handle date selection
     await handleDateSelection();
 
-    // Main loop for handling pagination and user responses
     while (true) {
         const nextResponse = await conversation.waitFor(['callback_query:data', 'message:text']);
         if (nextResponse.callbackQuery) {
@@ -143,8 +147,6 @@ export async function handleCompletedOrders(conversation: Conversation<MyContext
                     startDate.setMonth(today.getMonth() - 1);
                 }
                 endDate = today;
-
-                // Filter the orders based on the selected date range
                 filteredOrders = filterOrdersByDate(completedOrders!.value, startDate, endDate);
                 console.log("Filtered orders:", filteredOrders); // For debugging
                 if (!filteredOrders.length) {

@@ -1,4 +1,3 @@
-// import {Translates} from "../common/interfaces/translate.interface";
 
 export const translates = {
   uz: {

@@ -1,6 +1,11 @@
 import axios from 'axios';
+// Sap api url
 import {SAP_API_URL} from '../config/sapConfig';
+
+// Getting Session Id
 import {getSessionId} from "../services/sapSession.service";
+
+// Enums
 import {Methods} from "../common/enums/methods.enum";
 
 export async function apiResponseHelper(method: string, endpoint: string, data: unknown): Promise<any> {

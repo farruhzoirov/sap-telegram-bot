@@ -1,8 +1,13 @@
 import {Conversation} from "@grammyjs/conversations";
-import {MyContext} from "../common/types/session-context";
-import {LanguageEnum} from "../common/enums/language.enum";
-import {translates} from "../translates/translate";
 import {Keyboard} from "grammy";
+
+// Main type
+import {MyContext} from "../common/types/session-context";
+// Language Enum
+import {LanguageEnum} from "../common/enums/language.enum";
+
+// Translates for two language
+import {translates} from "../translates/translate";
 
 export async function askingPhone(conversation: Conversation<MyContext>, ctx: MyContext, language: string): Promise<string> {
     const keyboard = new Keyboard()
@@ -10,9 +15,12 @@ export async function askingPhone(conversation: Conversation<MyContext>, ctx: My
         .resized();
     await ctx.reply(
         language === LanguageEnum.uz ? translates.uz.asking_phone : translates.ru.asking_phone,
-        { reply_markup: keyboard }
+        {
+            reply_markup: keyboard
+        }
     );
-    const { message } = await conversation.waitFor('message:contact');
+
+    const {message} = await conversation.waitFor('message:contact');
 
     let phoneNumber = message?.contact?.phone_number;
 
@@ -23,6 +31,5 @@ export async function askingPhone(conversation: Conversation<MyContext>, ctx: My
     if (!phoneNumber.startsWith('+')) {
         phoneNumber = `+${phoneNumber}`;
     }
-
     return phoneNumber;
 }

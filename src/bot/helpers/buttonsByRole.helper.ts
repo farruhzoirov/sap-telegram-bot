@@ -1,27 +1,30 @@
 import {Keyboard} from "grammy";
+
+// Enums
 import {RolesEnum} from "../common/enums/roles.enum";
 import {LanguageEnum} from "../common/enums/language.enum";
 
-export const getInitialButtons = async  (language: string): Promise<Keyboard> => {
-    if (language === LanguageEnum.uz) {
+// Types
+import {MyContext} from "../common/types/session-context";
+
+export const getInitialButtons = async  (ctx: MyContext): Promise<Keyboard> => {
+    if (ctx.session.language === LanguageEnum.uz) {
         return new Keyboard()
             .text("Xaridlar")
             .text("To'lovlar")
             .row()
-            .text("Sozlamalar")
             .row();
-    } else if (language === LanguageEnum.ru) {
+    } else if (ctx.session.language === LanguageEnum.ru) {
         return new Keyboard()
             .text("Покупки")
             .text("Платежи")
             .row()
-            .text("Настройки")
             .row();
     }
     return new Keyboard()
         .text("Xaridlar")
         .text("To'lovlar")
-        .text("Настройки")
+        .text("Sozlamalar")
         .row();
 };
 
@@ -56,13 +59,11 @@ export const getPurchaseButtonsForUsers = (language: string): Keyboard => {
     if (language === LanguageEnum.uz) {
         return new Keyboard()
             .text("Xarid yaratish")
-            .text("Jarayondagi buyurtmalar")
             .row()
             .text("Orqaga");
     } else if (language === LanguageEnum.ru) {
         return new Keyboard()
             .text("Создать заказ")
-            .text("Заказы в процессе")
             .row()
             .text("Назад");
     }

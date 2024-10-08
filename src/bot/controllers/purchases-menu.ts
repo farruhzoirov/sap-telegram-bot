@@ -1,9 +1,15 @@
 import {Conversation} from "@grammyjs/conversations";
+
+// Types
 import {MyContext} from "../common/types/session-context";
+// Enums
 import {LanguageEnum} from "../common/enums/language.enum";
-import {getPurchasesMenuByRole} from "../helpers/buttonsByRole.helper";
 import {Back} from "../common/enums/inline-menu-enums";
 import {Purchases_uz, Purchases_ru} from "../common/enums/purchases.enum";
+
+// Helpers
+import {getPurchasesMenuByRole} from "../helpers/buttonsByRole.helper";
+
 
 // Import your order handling helpers
 import {handlePendingOrders} from "../helpers/purchases/pending-orders.helper";
@@ -11,11 +17,9 @@ import {handleCreatingPurchase} from "../helpers/purchases/creating-order.helper
 import {handleInTransitOrders} from "../helpers/purchases/intransit-order.helper";
 import {handleConfirmedOrders} from "../helpers/purchases/confirmed-orders.helper";
 import {handleCompletedOrders} from "../helpers/purchases/completed-order.helper";
-import {PaymentMenu, PurchasesMenu} from "../common/enums/main-menu.enums";
 import {ConversationStepsEnum} from "../common/enums/conversation-steps.enum";
-import {paymentsMenu} from "./payments-menu";
 
-const ITEMS_PER_PAGE = 1;
+const ITEMS_PER_PAGE = 10;
 import {User} from "../models/user.schema";
 import {handleMainMenu} from "./main-menu";
 

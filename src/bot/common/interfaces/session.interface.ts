@@ -1,9 +1,10 @@
-export interface MySession {
-  language?: string;
-  step?: string;  // Current step (menu, verification, etc.)
-  collectedData?: {
-    phoneNumber?: string;
-    role?: string;
-    [key: string]: any;
-  };
+// Define the structure for session data
+import {ConversationStepsEnum} from "../enums/conversation-steps.enum";
+import {Order} from "./order";
+
+
+ export interface SessionData {
+    language: string;
+    currentStep: ConversationStepsEnum;
+    order: Order[]
 }

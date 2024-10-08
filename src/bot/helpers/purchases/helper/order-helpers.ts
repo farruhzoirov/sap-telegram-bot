@@ -1,4 +1,3 @@
-
 interface DocumentLine {
     ItemCode: string;
     Quantity: number;

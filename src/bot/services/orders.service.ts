@@ -1,5 +1,9 @@
 import {SAP_API_ENDPOINTS} from "../config/sapConfig";
+
+// Helpers
 import {apiResponseHelper} from "../helpers/api-response.helper";
+
+// Enums
 import {Methods} from "../common/enums/methods.enum";
 
 
